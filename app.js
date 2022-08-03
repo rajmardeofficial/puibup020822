@@ -14,6 +14,7 @@ const bcript = require("bcrypt");
 const passportLocalMongoose = require("passport-local-mongoose");
 const cryptoJs = require("crypto-js");
 const multer = require("multer");
+const PDFDocument = require("pdfkit");
 const { log } = require("console");
 
 const app = express();
@@ -37,6 +38,7 @@ app.use((req, res, next) => {
     res.locals.isLoggedIn = false;
   } else {
     res.locals.username = req.session.username;
+    res.locals.dp = req.session.dp
     res.locals.isLoggedIn = true;
   }
   next();
@@ -147,6 +149,54 @@ app.post("/createOrder/:id", (req, res) => {
   });
 });
 
+// PDF KIT
+
+app.get("/invoice", checkName, (req, res) => {
+  const doc = new PDFDocument({
+    bufferPages: true,
+    font: "Courier",
+    layout: "landscape",
+    size: "A4",
+  });
+
+  function buildPDF(datacallback, endcallback) {
+    doc.on("data", datacallback);
+    doc.on("end", endcallback);
+
+    doc
+      .image("ticket/invoice.jpg", 0, 0, { width: 850 })
+      .rect(0, 0, 850, 850)
+      .stroke()
+      .fontSize(25)
+      .text(`${req.session.username}`, 70, 200)
+      .fillColor("white");
+    doc.end();
+  }
+  const stream = res.writeHead(200, {
+    "Content-Type": "application/pdf",
+    "Content-Disposition": `attachment;filename=invoice.pdf`,
+  });
+
+  buildPDF(
+    (chunk) => stream.write(chunk),
+    () => stream.end()
+  );
+});
+
+function checkName(req, res, next) {
+  if (req.session.username) {
+    next();
+  } else {
+    res.send("oops bocha fatla");
+  }
+}
+
+// PDF KIT END
+
+app.get("/pop", (req, res) => {
+  res.render("popup");
+});
+
 app.post("/success", (req, res) => {
   // console.log(req.body);
   let body = req.body.razorpay_order_id + "|" + req.body.razorpay_payment_id;
@@ -189,7 +239,7 @@ app.post("/", (req, res) => {
         if (results.password === password) {
           req.session.username = results.username;
           req.session.userid = results._id;
-          res.redirect("clubs");
+          res.redirect("pop");
         }
       }
     }
@@ -202,19 +252,12 @@ app.get("/register", function (req, res) {
 });
 
 app.post("/register", imageUpload.single("image"), (req, res) => {
-  const {
-    username,
-    password,
-    phone,
-    date,
-    email,
-    anidate,
-    bio,
-    gender,
-    image,
-  } = req.body;
+  const { username, password, phone, date, email, anidate, bio, gender } =
+    req.body;
 
-  // console.log(req.body);
+  const image = req.file.filename;
+
+  console.log(image);
 
   const data = new clubUsers({
     username: username,
@@ -233,6 +276,7 @@ app.post("/register", imageUpload.single("image"), (req, res) => {
     } else {
       req.session.userid = result._id;
       req.session.username = result.username;
+      req.session.dp = result.image
       res.redirect("/clubs");
     }
   });
@@ -268,16 +312,11 @@ app.get("/card/:id", (req, res) => {
   //   }
   // });
 
-  clubowner.aggregate
-    .lookup({
-      from: "clubuser",
-      localField: "likes.user",
-      foreignField: "_id",
-      as: "likedby",
-    })
+  clubowner
+    .findById(id)
+    .populate("likes.user")
     .exec((err, results) => {
-      if (err) console.log(err);
-      else console.log(results);
+      res.render("card", { data: results.likes });
     });
 });
 

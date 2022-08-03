@@ -21,7 +21,7 @@
   </head>
 
   <body>
-    <h1 style="color: white"><%= locals.username %></h1>
+    <!-- <h1 style="color: white"><%= locals.username %></h1> -->
     <div class="main">
       <div class="chatopt">
         <div class="box">
@@ -38,14 +38,15 @@
               <i class="fas fa-search"></i>
             </label>
           </div>
-          <p style="color: #c7bfaf; padding-left: 60px">Search</p>
+          <p style="color: #c7bfaf; text-align: center">Search By City</p>
         </div>
 
         <div class="box">
-          <div class="search-box">
-            <label for="om" class="icon">
+          <div class="search-box" style="background-color: white">
+            <!-- <label for="om" class="icon">
               <a href="pricing.html"><i class="fas fa-comment chatbox"></i></a>
-            </label>
+            </label> -->
+            <img src="../images/image_1659525961888.jpg" alt="iygbuyhb" />
           </div>
           <p style="color: #c7bfaf; padding-left: 50px">Find A Date</p>
         </div>
@@ -73,7 +74,14 @@
       </div>
 
       <ul class="cards" id="mycards">
-        <% data.forEach((cardData)=>{ %>
+        <% if(locals.username == "Guest"){ %>
+        <h1 style="color: white">Please Login First To See The Clubs</h1>
+        <button class="btn card_btn">
+          <a href="/" style="text-decoration: none; color: #fff"
+            >Login / Register</a
+          >
+        </button>
+        <% } else { %> <% data.forEach((cardData)=>{ %>
 
         <li class="cards_item">
           <div class="card">
@@ -86,11 +94,37 @@
               <h2 class="card_title"><%= cardData.clubname %></h2>
 
               <form action="/like/<%= cardData._id %>" method="post">
-                <button type="submit" style=""><i class="fa-regular fa-heart" style="color: black; cursor: pointer;"></i></button>
-                
+                <button
+                  type="submit"
+                  style="
+                    margin-top: 1rem;
+                    background: #191919;
+                    border: none;
+                    border-radius: 5px;
+                  "
+                >
+                  <div style="align-items: center; display: flex">
+                    <i
+                      class="fa-solid fa-heart"
+                      style="
+                        color: red;
+                        cursor: pointer;
+                        font-size: 25px;
+                        padding: 5px;
+                      "
+                    ></i>
+                    <p style="color: #eed9c4">
+                      Hit here to get into people's interest list
+                    </p>
+                  </div>
+                </button>
               </form>
 
-              <a href="/card/<%= cardData._id %>"><p style="color: white;"><%=cardData.likes.length%> showd interest</p></a>
+              <a href="/card/<%= cardData._id %>"
+                ><p style="color: #eed9c4; margin-top: 1rem">
+                  <%=cardData.likes.length%> showed interest
+                </p></a
+              >
 
               <p class="card_text"><%= cardData.disc %></p>
 
@@ -100,7 +134,7 @@
             </div>
           </div>
         </li>
-        <% }) %>
+        <% }) %> <% } %>
       </ul>
     </div>
 
