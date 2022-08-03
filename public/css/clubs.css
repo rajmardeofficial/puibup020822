@@ -1,0 +1,261 @@
+/* Font */
+
+@import url('https://fonts.googleapis.com/css?family=Quicksand:400,700');
+
+/* Design */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html {
+    background-color: #191919;
+}
+
+body {
+    color: #191919;
+    font-family: 'Quicksand', serif;
+    font-style: normal;
+    font-weight: 400;
+    letter-spacing: 0;
+    padding: 1rem;
+}
+
+.main {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+h1 {
+    font-size: 24px;
+    font-weight: 400;
+    text-align: center;
+}
+
+img {
+    height: auto;
+    max-width: 100%;
+    vertical-align: middle;
+}
+
+.btn {
+    color: #ffffff;
+    padding: 0.8rem;
+    font-size: 14px;
+    text-transform: uppercase;
+    border-radius: 4px;
+    font-weight: 400;
+    display: block;
+    width: 100%;
+    cursor: pointer;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background-color: #4E4E50;
+    background-image: linear-gradient(to right, #FA5B3D 0%, #FF5470 51%, #FF5470 100%);
+}
+
+.chatopt {
+    display: flex;
+    justify-content: space-between;
+}
+
+.btn:hover {
+    background-color: rgba(255, 255, 255, 0.12);
+}
+
+a {
+    text-decoration: none;
+}
+
+.serchbyclass {
+    max-height: 120px;
+    margin-top: 30px;
+    margin-bottom: 100px;
+    margin-left: 30px;
+}
+
+.buting {
+    background-color: #6F2232;
+    border: none;
+    color: white;
+    padding: 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-flex;
+    font-size: 16px;
+    margin: 4px 2px;
+    border-radius: 12px;
+}
+
+.wrapper {
+    /* width: 100%; */
+    display: grid;
+    grid-auto-flow: column;
+    gap: var(--size-3);
+    color: white;
+    grid-auto-columns: 20%;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    margin-top: 50px;
+    margin-left: 30px;
+    margin-bottom: 20px;
+    font: bolder;
+}
+
+.up_wrapper {
+    margin-top: 30px;
+    margin-bottom: 30px;
+    border: solid thin white;
+    border-left: none;
+    border-right: none;
+}
+
+.wrapper::-webkit-scrollbar {
+    width: 0;
+}
+
+.wrapper .item {
+    display: grid;
+    gap: var(--size-2);
+    padding: var(--size-3);
+    background: var(--surface-2);
+}
+
+.item {
+    font-weight: bolder;
+    color: #c7bfaf;
+}
+
+.cards {
+    display: flex;
+    flex-wrap: wrap;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.cards_item {
+    display: flex;
+    padding: 1rem;
+}
+
+@media (min-width: 40rem) {
+    .cards_item {
+        width: 50%;
+    }
+}
+
+@media (min-width: 56rem) {
+    .cards_item {
+        width: 33.3333%;
+    }
+}
+
+.card {
+    background-color: white;
+    border-radius: 0.25rem;
+    box-shadow: 0 20px 40px -14px rgba(0, 0, 0, 0.25);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.card_content {
+    padding: 1rem;
+    background: linear-gradient(to bottom left, #191919 40%, #191919 100%);
+}
+
+.card_title {
+    color: #6F2232;
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: capitalize;
+    margin: 0px;
+}
+
+.card_text {
+    color: #EED9C4;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    margin-bottom: 1.25rem;
+    font-weight: 400;
+}
+
+.made_by {
+    font-weight: 400;
+    font-size: 13px;
+    margin-top: 35px;
+    text-align: center;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap');
+body {
+    height: 100vh;
+    margin-top: 50px;
+    width: 100%;
+    background: #191919;
+    display: flex;
+    justify-content: center;
+}
+
+.box {
+    max-width: 400px;
+    width: 100%;
+}
+
+.box .search-box {
+    position: relative;
+    height: 50px;
+    max-width: 50px;
+    margin: auto;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.25);
+    border-radius: 25px;
+    transition: all 0.3s ease;
+}
+
+.chatbox {
+    color: #EED9C4;
+}
+
+#check:checked~.search-box {
+    max-width: 380px;
+}
+
+.search-box input {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    border-radius: 25px;
+    background: #fff;
+    outline: none;
+    border: none;
+    padding-left: 20px;
+    font-size: 18px;
+}
+
+.search-box .icon {
+    position: absolute;
+    right: -2px;
+    top: 0;
+    width: 50px;
+    background: #FFF;
+    height: 100%;
+    text-align: center;
+    line-height: 50px;
+    color: #EED9C4;
+    font-size: 20px;
+    border-radius: 25px;
+}
+
+#check:checked~.search-box .icon {
+    background: #EED9C4;
+    color: #FFF;
+    width: 60px;
+    border-radius: 0 25px 25px 0;
+}
+
+#check {
+    display: none;
+}

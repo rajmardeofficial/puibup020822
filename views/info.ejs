@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<!-- Designed by CodingLab | www.youtube.com/codinglabyt -->
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="UTF-8" />
+    <!--<title> Responsive Animated Product Card | CodingLab </title>-->
+    <link rel="stylesheet" href="/css/info.css" />
+    <!-- Boxicons CDN Link -->
+    <link
+      href="https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css"
+      rel="stylesheet"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.0.0-alpha.1/axios.min.js"
+      integrity="sha512-xIPqqrfvUAc/Cspuj7Bq0UtHNo/5qkdyngx6Vwt+tmbvTLDszzXM0G6c91LXmGrRx8KEPulT+AfOOez+TeVylg=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+  </head>
+
+  <body>
+    <!-- we are creating a slider here -->
+
+    <div class="slider">
+      <div class="posfix">
+        <div class="slide active">
+          <img src="/images/lig.jpg" alt="" />
+        </div>
+        <div class="slide">
+          <img src="/images/sin.jpg" alt="" />
+        </div>
+        <div class="slide">
+          <img src="/images/alf.jpg" alt="" />
+        </div>
+        <div class="slide">
+          <img src="/images/fred.jpg" alt="" />
+        </div>
+        <div class="slide">
+          <img src="/images/alf.jpg" alt="" />
+        </div>
+        <div class="navigation">
+          <i class="fas fa-chevron-left prev-btn"></i>
+          <i class="fas fa-chevron-right next-btn"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- our slider ends here -->
+
+    <% if(locals.isLoggedIn){ %>
+    <div class="product-card">
+      <div class="shoe-details">
+        <span class="shoe_name"><%= data.tagofevent%></span>
+        <p>📍Venue : <%= data.venue%></p>
+        <div class="entd">
+          <p>💵Entry Fees : <span class="ovr"><%= data.entryfees%>RS</span></p>
+          <p>
+            Discounted Fees : <span class="ovrg"><%= data.discount%>RS</span>
+          </p>
+        </div>
+        <div class="entm">
+          <p>🎵Theme : <span class="theme"><%= data.theme%></span></p>
+          <p>🎸DJ Performing : <span class="dj"><%= data.dj%></span></p>
+        </div>
+
+        <div class="stars">
+          <i class="bx bxs-star"></i>
+          <i class="bx bxs-star"></i>
+          <i class="bx bxs-star"></i>
+          <i class="bx bxs-star"></i>
+          <i class="bx bx-star"></i>
+        </div>
+      </div>
+      <div class="color-price">
+        <div class="color-option">
+          <span class="color"><%= data.address%></span>
+        </div>
+        <div class="price">
+          <span class="price_num">12Jul </span>
+          <span class="price_letter">11:30 PM</span>
+        </div>
+      </div>
+      <div class="button">
+        <div class="button-layer"></div>
+        <button id="rzp-button1">Book Your Ticket!</button>
+      </div>
+    </div> 
+    <% }else { %>
+        <h1>Login first to book ticket</h1>
+    <% } %>
+
+    <script>
+      document.getElementById("rzp-button1").addEventListener("click", (e) => {
+        axios.post(`/createOrder/<%= data._id %>`).then((info) => {
+          var options = {
+            key: "rzp_test_zdzlPwPUae1Qzv", // Enter the Key ID generated from the Dashboard
+            currency: "INR",
+            name: "Om Kadam",
+            description: "Test Transaction",
+            image:
+              "https://i1.sndcdn.com/artworks-HHQ38rycf6pd3p8F-4untDg-t500x500.jpg",
+            order_id: info.data.id, //This is a sample Order ID. Pass the `id` obtained in the response of Step 1
+            callback_url: "https://eneqd3r9zrjok.x.pipedream.net/",
+            prefill: {
+              name: "Om Kadam",
+              email: "omkadam@gmail.com",
+              contact: "7057508057",
+            },
+            notes: {
+              address: "Razorpay Corporate Office",
+            },
+            theme: {
+              color: "#3399cc",
+            },
+          };
+          var rzp1 = new Razorpay(options);
+          rzp1.open();
+          e.preventDefault();
+        });
+      });
+      let circle = document.querySelector(".color-option");
+
+      circle.addEventListener("click", (e) => {
+        let target = e.target;
+        if (target.classList.contains("circle")) {
+          circle.querySelector(".active").classList.remove("active");
+          target.classList.add("active");
+          document
+            .querySelector(".main-images .active")
+            .classList.remove("active");
+          document
+            .querySelector(`.main-images .${target.id}`)
+            .classList.add("active");
+        }
+      });
+
+      const slider = document.querySelector(".slider");
+      const nextBtn = document.querySelector(".next-btn");
+      const prevBtn = document.querySelector(".prev-btn");
+      const slides = document.querySelectorAll(".slide");
+      const slideIcons = document.querySelectorAll(".slide-icon");
+      const numberOfSlides = slides.length;
+      var slideNumber = 0;
+
+      //image slider next button
+      nextBtn.addEventListener("click", () => {
+        slides.forEach((slide) => {
+          slide.classList.remove("active");
+        });
+        slideIcons.forEach((slideIcon) => {
+          slideIcon.classList.remove("active");
+        });
+
+        slideNumber++;
+
+        if (slideNumber > numberOfSlides - 1) {
+          slideNumber = 0;
+        }
+
+        slides[slideNumber].classList.add("active");
+        slideIcons[slideNumber].classList.add("active");
+      });
+
+      //image slider previous button
+      prevBtn.addEventListener("click", () => {
+        slides.forEach((slide) => {
+          slide.classList.remove("active");
+        });
+        slideIcons.forEach((slideIcon) => {
+          slideIcon.classList.remove("active");
+        });
+
+        slideNumber--;
+
+        if (slideNumber < 0) {
+          slideNumber = numberOfSlides - 1;
+        }
+
+        slides[slideNumber].classList.add("active");
+        slideIcons[slideNumber].classList.add("active");
+      });
+
+      //image slider autoplay
+      var playSlider;
+
+      var repeater = () => {
+        playSlider = setInterval(function () {
+          slides.forEach((slide) => {
+            slide.classList.remove("active");
+          });
+          slideIcons.forEach((slideIcon) => {
+            slideIcon.classList.remove("active");
+          });
+
+          slideNumber++;
+
+          if (slideNumber > numberOfSlides - 1) {
+            slideNumber = 0;
+          }
+
+          slides[slideNumber].classList.add("active");
+          slideIcons[slideNumber].classList.add("active");
+        }, 4000);
+      };
+      repeater();
+
+      //stop the image slider autoplay on mouseover
+      slider.addEventListener("mouseover", () => {
+        clearInterval(playSlider);
+      });
+
+      //start the image slider autoplay again on mouseout
+      slider.addEventListener("mouseout", () => {
+        repeater();
+      });
+    </script>
+  </body>
+</html>
