@@ -11,6 +11,12 @@
   <body>
     <div class="login-box">
       <h2 style="margin-top: 30 px">Register</h2>
+      <% if(errors.length > 0){ %>
+        <% errors.forEach((e)=>{ %>
+          
+          <h1 style="color: red;"><%=e%></h1>
+        <% }) %>
+      <% } %>
       <form
         action="/register"
         method="POST"

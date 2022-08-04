@@ -50,7 +50,7 @@
     <!-- our slider ends here -->
 
     <% if(locals.isLoggedIn){ %>
-    <div class="product-card" style="padding: auto 0 auto 0;">
+    <div class="product-card" style="padding: auto 0 auto 0">
       <div class="shoe-details">
         <span class="shoe_name"><%= data.tagofevent%></span>
         <p>📍Venue : <%= data.venue%></p>
@@ -86,9 +86,9 @@
         <div class="button-layer"></div>
         <button id="rzp-button1">Book Your Ticket!</button>
       </div>
-    </div> 
+    </div>
     <% }else { %>
-        <h1>Login first to book ticket</h1>
+    <h1>Login first to book ticket</h1>
     <% } %>
 
     <script>
@@ -97,16 +97,15 @@
           var options = {
             key: "rzp_test_zdzlPwPUae1Qzv", // Enter the Key ID generated from the Dashboard
             currency: "INR",
-            name: "Om Kadam",
-            description: "Test Transaction",
-            image:
-              "https://i1.sndcdn.com/artworks-HHQ38rycf6pd3p8F-4untDg-t500x500.jpg",
+            name: "<%= locals.username %>",
+            description: "Ticket Book",
+            image: "http://localhost:2022/images/logo.jpeg",
             order_id: info.data.id, //This is a sample Order ID. Pass the `id` obtained in the response of Step 1
             callback_url: "/success",
             prefill: {
-              name: "Om Kadam",
-              email: "omkadam@gmail.com",
-              contact: "7057508057",
+              name: "<%= locals.username %>",
+              email: "<%= locals.email %>",
+              contact: "<%= locals.phone %>",
             },
             notes: {
               address: "Razorpay Corporate Office",

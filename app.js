@@ -14,7 +14,7 @@ const passport = require("passport");
 const bcript = require("bcrypt");
 const passportLocalMongoose = require("passport-local-mongoose");
 const cryptoJs = require("crypto-js");
-const crypto = require('crypto')
+const crypto = require("crypto");
 const multer = require("multer");
 const PDFDocument = require("pdfkit");
 const { log } = require("console");
@@ -36,7 +36,6 @@ const keyId = process.env.KEY_ID;
 const keySecret = process.env.KEY_SECRET;
 
 app.use((req, res, next) => {
-  console.log(req.session);
 
   if (req.session.username === undefined) {
     res.locals.username = "Guest";
@@ -44,6 +43,8 @@ app.use((req, res, next) => {
   } else {
     res.locals.username = req.session.username;
     res.locals.dp = req.session.dp;
+    res.locals.email = req.session.email;
+    res.locals.phone = req.session.phone;
     res.locals.isLoggedIn = true;
   }
   next();
@@ -114,9 +115,16 @@ const clubdataSchema = new mongoose.Schema({
   ],
 });
 
+const uniqueSchema = new mongoose.Schema({
+  uniqueId: Number,
+  user: { type: Types.ObjectId, ref: "clubUsers" },
+  ticketemail: String
+});
+
 userSchema.plugin(passportLocalMongoose);
 const clubUsers = mongoose.model("clubUsers", userSchema);
 const clubowner = mongoose.model("clubowner", clubdataSchema);
+const uniqueId = mongoose.model("uniqueId", uniqueSchema);
 passport.use(clubUsers.createStrategy());
 passport.serializeUser(function (user, done) {
   done(null, user);
@@ -199,7 +207,44 @@ function checkName(req, res, next) {
 
 // PDF KIT END
 
-app.get("/pop", (req, res) => { 
+// uniqueId generation
+
+app.get("/uni", (req, res) => {
+  const uniqueNumber = Math.floor(Math.random() * 10);
+  console.log(uniqueNumber);
+
+  req.session.uniqueNumber = uniqueNumber;
+  
+
+  const uniqueData = new uniqueId({
+    uniqueId: uniqueNumber,
+    user: req.session.userid,
+    ticketemail: req.session.email
+  });
+  if (req.session.userid) {
+    uniqueData.save((err, result) => {
+      console.log(result);
+    });
+  } else {
+    res.redirect("/");
+  }
+});
+
+app.get("/clubAdmin", (req, res) => {
+  res.render("clubAdmin");
+});
+
+app.post("/uni", (req, res) => {
+  const uniqueRand = req.body.uniqueId;
+  console.log(uniqueRand); 
+  uniqueId.find({ uniqueId: uniqueRand }, (err, result) => {
+    console.log(result);
+  });
+});
+
+// uniqueId generation end
+
+app.get("/pop", (req, res) => {
   res.render("popup");
 });
 
@@ -247,6 +292,9 @@ app.post("/", (req, res) => {
           req.session.username = results.username;
           req.session.userid = results._id;
           req.session.dp = results.image;
+          req.session.email = results.email;
+          req.session.phone = results.contactNumber;
+
           res.redirect("pop");
         }
       }
@@ -256,36 +304,44 @@ app.post("/", (req, res) => {
 
 app.get("/register", function (req, res) {
   // console.log(req.session);
-  res.render("register");
+  res.render("register", { errors: [] });
 });
 
 app.post("/register", imageUpload.single("image"), (req, res) => {
   const { username, password, phone, date, email, anidate, bio, gender } =
     req.body;
 
-  const image = req.file.filename;
+  const errors = [];
 
-  console.log(image);
-
-  const data = new clubUsers({
-    username: username,
-    password: password,
-    contactNumber: phone,
-    birthday: date,
-    email: email,
-    aniversary: anidate,
-    bio: bio,
-    gender: gender,
-    image: image,
-  });
-  data.save((err, result) => {
-    if (err) {
-      console.log(err);
+  clubUsers.find({ email: email }, (err, result) => {
+    if (result.length > 0) {
+      errors.push("Email already exist");
+      res.render("register", { errors: errors });
     } else {
-      req.session.username = result.username;
-      req.session.userid = result._id;
-      req.session.dp = result.image;
-      res.redirect("/clubs");
+      const image = req.file.filename;
+      const data = new clubUsers({
+        username: username,
+        password: password,
+        contactNumber: phone,
+        birthday: date,
+        email: email,
+        aniversary: anidate,
+        bio: bio,
+        gender: gender,
+        image: image,
+      });
+      data.save((err, result) => {
+        if (err) {
+          console.log(err);
+        } else {
+          req.session.username = result.username;
+          req.session.userid = result._id;
+          req.session.dp = result.image;
+          req.session.email = result.email;
+          req.session.phone = result.contactNumber;
+          res.redirect("/clubs");
+        }
+      });
     }
   });
 });
@@ -328,14 +384,13 @@ app.get("/card/:id", (req, res) => {
       res.render("card", { data: results.likes });
     });
 });
- 
+
 app.get("/clubs", function (req, res) {
   clubowner.find((err, result) => {
     if (!err) {
       res.render("clubs", {
         data: result,
       });
-
     } else {
       console.log("something went wrong data was not fetched");
     }

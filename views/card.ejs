@@ -135,10 +135,16 @@
     </style>
   </head>
   <body>
-    <% data.forEach((cardData)=>{ %>
+    <% if(locals.isLoggedIn){ %> <% data.forEach((cardData)=>{ %>
     <div class="card-container">
       <span class="pro">PUBSTER</span>
-      <img class="round" src="/dp/<%= cardData.user.image %>" alt="user" width="100px" height="100px"/>
+      <img
+        class="round"
+        src="/dp/<%= cardData.user.image %>"
+        alt="user"
+        width="100px"
+        height="100px"
+      />
       <h3><%= cardData.user.username %></h3>
       <h6>New York</h6>
       <p>
@@ -150,18 +156,20 @@
         <!-- <button class="primary ghost">Following</button> -->
       </div>
       <!-- <div class="skills">
-              <h6>Skills</h6>
-              <ul>
-                <li>UI / UX</li>
-                <li>Front End Development</li>
-                <li>HTML</li>
-                <li>CSS</li>
-                <li>JavaScript</li>
-                <li>React</li>
-                <li>Node</li>
-              </ul>
-            </div> -->
+                  <h6>Skills</h6>
+                  <ul>
+                    <li>UI / UX</li>
+                    <li>Front End Development</li>
+                    <li>HTML</li>
+                    <li>CSS</li>
+                    <li>JavaScript</li>
+                    <li>React</li>
+                    <li>Node</li>
+                  </ul>
+                </div> -->
     </div>
-    <% }) %>
+    <% }) %> <% } else { %>
+    <h1 style="color: white;">Login First to see Interested people</h1>
+    <% } %>
   </body>
 </html>
