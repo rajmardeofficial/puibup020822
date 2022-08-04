@@ -13,7 +13,7 @@
       }
 
       body {
-        background-color: #28223f;
+        background-color: #191919;
         font-family: Montserrat, sans-serif;
 
         display: flex;
@@ -40,7 +40,7 @@
       }
 
       .card-container {
-        background-color: #231e39;
+        background-color: #191919;
         border-radius: 5px;
         box-shadow: 0px 10px 20px -10px rgba(0, 0, 0, 0.75);
         color: #b3b8cd;
@@ -49,18 +49,20 @@
         width: 350px;
         max-width: 100%;
         text-align: center;
+        margin: 20px;
+        padding: 10px;
       }
 
       .card-container .pro {
         color: #231e39;
         background-color: #febb0b;
         border-radius: 3px;
-        font-size: 14px;
+        font-size: 12px;
         font-weight: bold;
         padding: 3px 7px;
         position: absolute;
         top: 30px;
-        left: 30px;
+        left: 20px;
       }
 
       .card-container .round {
@@ -132,27 +134,22 @@
       }
     </style>
   </head>
-  <body> 
-
-        <% data.forEach((cardData)=>{ %>
-          <div class="card-container">
-            <span class="pro">PRO</span>
-            <img
-              class="round"
-              src="https://randomuser.me/api/portraits/women/79.jpg"
-              alt="user"
-            />
-            <h3><%= cardData.user.username %></h3>
-            <h6>New York</h6>
-            <p>
-              User interface designer and <br />
-              front-end developer
-            </p>
-            <div class="buttons">
-              <button class="primary">Message</button>
-              <button class="primary ghost">Following</button>
-            </div>
-            <div class="skills">
+  <body>
+    <% data.forEach((cardData)=>{ %>
+    <div class="card-container">
+      <span class="pro">PUBSTER</span>
+      <img class="round" src="/dp/<%= cardData.user.image %>" alt="user" width="100px" height="100px"/>
+      <h3><%= cardData.user.username %></h3>
+      <h6>New York</h6>
+      <p>
+        User interface designer and <br />
+        front-end developer
+      </p>
+      <div class="buttons">
+        <button class="primary">Message</button>
+        <!-- <button class="primary ghost">Following</button> -->
+      </div>
+      <!-- <div class="skills">
               <h6>Skills</h6>
               <ul>
                 <li>UI / UX</li>
@@ -163,9 +160,8 @@
                 <li>React</li>
                 <li>Node</li>
               </ul>
-            </div>
-          </div>
-        <% }) %>
-
+            </div> -->
+    </div>
+    <% }) %>
   </body>
 </html>

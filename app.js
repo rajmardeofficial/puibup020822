@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const Razorpay = require("razorpay");
 const bodyparser = require("body-parser");
@@ -13,6 +14,7 @@ const passport = require("passport");
 const bcript = require("bcrypt");
 const passportLocalMongoose = require("passport-local-mongoose");
 const cryptoJs = require("crypto-js");
+const crypto = require('crypto')
 const multer = require("multer");
 const PDFDocument = require("pdfkit");
 const { log } = require("console");
@@ -30,6 +32,9 @@ app.use(express.static(__dirname + "/public/"));
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
+const keyId = process.env.KEY_ID;
+const keySecret = process.env.KEY_SECRET;
+
 app.use((req, res, next) => {
   console.log(req.session);
 
@@ -38,7 +43,7 @@ app.use((req, res, next) => {
     res.locals.isLoggedIn = false;
   } else {
     res.locals.username = req.session.username;
-    res.locals.dp = req.session.dp
+    res.locals.dp = req.session.dp;
     res.locals.isLoggedIn = true;
   }
   next();
@@ -51,7 +56,7 @@ mongoose.connect("mongodb://localhost:27017/clubs", {
 
 const imageStorage = multer.diskStorage({
   // Destination to store image
-  destination: "images",
+  destination: "public/dp",
   filename: (req, file, cb) => {
     cb(
       null,
@@ -68,7 +73,8 @@ const imageUpload = multer({
     fileSize: 1000000, // 1000000 Bytes = 1 MB
   },
   fileFilter(req, file, cb) {
-    if (!file.originalname.match(/\.(png|jpg)$/)) {
+    console.log(file);
+    if (!file.originalname.match(/\.(png|jpg|HEIC|jpeg|AVIF)$/)) {
       // upload only png and jpg format
       return cb(new Error("Please upload a Image"));
     }
@@ -193,7 +199,7 @@ function checkName(req, res, next) {
 
 // PDF KIT END
 
-app.get("/pop", (req, res) => {
+app.get("/pop", (req, res) => { 
   res.render("popup");
 });
 
@@ -206,9 +212,10 @@ app.post("/success", (req, res) => {
     .digest("hex");
   console.log("sig received ", req.body.razorpay_signature);
   console.log("sig generated ", expectedSignature);
-  if (expectedSignature === req.body.razorpay_signature)
+  if (expectedSignature === req.body.razorpay_signature) {
     response = { signatureIsValid: "true" };
-  res.send(response);
+    res.redirect("/invoice");
+  }
 });
 
 //Razorpay logic ends here
@@ -239,6 +246,7 @@ app.post("/", (req, res) => {
         if (results.password === password) {
           req.session.username = results.username;
           req.session.userid = results._id;
+          req.session.dp = results.image;
           res.redirect("pop");
         }
       }
@@ -274,9 +282,9 @@ app.post("/register", imageUpload.single("image"), (req, res) => {
     if (err) {
       console.log(err);
     } else {
-      req.session.userid = result._id;
       req.session.username = result.username;
-      req.session.dp = result.image
+      req.session.userid = result._id;
+      req.session.dp = result.image;
       res.redirect("/clubs");
     }
   });
@@ -316,10 +324,11 @@ app.get("/card/:id", (req, res) => {
     .findById(id)
     .populate("likes.user")
     .exec((err, results) => {
+      console.log(results.likes[0].user);
       res.render("card", { data: results.likes });
     });
 });
-
+ 
 app.get("/clubs", function (req, res) {
   clubowner.find((err, result) => {
     if (!err) {
@@ -327,7 +336,6 @@ app.get("/clubs", function (req, res) {
         data: result,
       });
 
-      // console.log(result);
     } else {
       console.log("something went wrong data was not fetched");
     }
@@ -411,6 +419,18 @@ app.post("/clubowners", function (req, res) {
   data.save();
 
   res.redirect("/clubowners");
+});
+
+//logout
+
+app.get("/logout", (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      res.redirect("/");
+    } else {
+      res.redirect("/");
+    }
+  });
 });
 
 app.listen(process.env.PORT || 2022, function () {
