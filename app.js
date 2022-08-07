@@ -6,6 +6,7 @@ const request = require("request");
 const https = require("https");
 const ejs = require("ejs");
 const path = require("path");
+const xoauth2 = require("xoauth2");
 const mongoose = require("mongoose");
 const { Types } = mongoose;
 const nodemailer = require("nodemailer");
@@ -36,7 +37,6 @@ const keyId = process.env.KEY_ID;
 const keySecret = process.env.KEY_SECRET;
 
 app.use((req, res, next) => {
-
   if (req.session.username === undefined) {
     res.locals.username = "Guest";
     res.locals.isLoggedIn = false;
@@ -116,9 +116,9 @@ const clubdataSchema = new mongoose.Schema({
 });
 
 const uniqueSchema = new mongoose.Schema({
-  uniqueId: Number,
+  uniqueId: String,
   user: { type: Types.ObjectId, ref: "clubUsers" },
-  ticketemail: String
+  ticketemail: String,
 });
 
 userSchema.plugin(passportLocalMongoose);
@@ -210,20 +210,19 @@ function checkName(req, res, next) {
 // uniqueId generation
 
 app.get("/uni", (req, res) => {
-  const uniqueNumber = Math.floor(Math.random() * 10);
+  const uniqueNumber = Math.random().toString(36).substr(2, 9);
   console.log(uniqueNumber);
-
   req.session.uniqueNumber = uniqueNumber;
-  
 
   const uniqueData = new uniqueId({
     uniqueId: uniqueNumber,
     user: req.session.userid,
-    ticketemail: req.session.email
+    ticketemail: req.session.email,
   });
   if (req.session.userid) {
+    console.log(req.session.userid);
     uniqueData.save((err, result) => {
-      console.log(result);
+      console.log(err);
     });
   } else {
     res.redirect("/");
@@ -236,9 +235,50 @@ app.get("/clubAdmin", (req, res) => {
 
 app.post("/uni", (req, res) => {
   const uniqueRand = req.body.uniqueId;
-  console.log(uniqueRand); 
+  console.log(uniqueRand);
   uniqueId.find({ uniqueId: uniqueRand }, (err, result) => {
     console.log(result);
+    req.session.ticketemail = result[0].ticketemail
+    // let transporter = nodemailer.createTransport({
+    //   service: "gmail",
+    //   auth: {
+    //     user: "perseverancetechytl@gmail.com",
+    //     pass: "pubup@160992",
+    //   },
+    // });
+    let mailOptions = {
+      from: "PUBUP",
+      to: req.session.ticketemail,
+      subject: "Hello this is test nodemailer email",
+      text: `<h1> Welcome to PUBUP </h1>
+        <p> Your unique code is: </p>
+        <h1> ${result} </h1> 
+      `,
+    };
+    nodemailer
+      .createTransport({
+        service: "Gmail",
+        auth: {
+          // xoauth2: xoauth2.createXOAuth2Generator({
+          //   user: "perseverancetechytl@gmail.com",
+          //   clientId:
+          //     "815030353595-qtbg3q4pa5u2jm84uqmpi4pudj9qnq5s.apps.googleusercontent.com",
+          //   clientSecret: "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",
+          // }),
+
+          user: "raj.webdevelopment.practice@gmail.com",
+          pass: "hkjdyokvjqxdmwrk",
+        },
+        port: 465,
+        host: "smtp.gmail.com",
+      })
+      .sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.log(error);
+        } else {
+          console.log(info);
+        }
+      });
   });
 });
 
@@ -277,12 +317,13 @@ app.get(
   },
 
   (req, res) => {
-    res.render("login");
+    res.render("login", { errors: [] });
   }
 );
 
 app.post("/", (req, res) => {
   const { username, password } = req.body;
+  const errors = [];
   clubUsers.findOne({ username: username }, (err, results) => {
     if (err) {
       console.log(err);
@@ -296,6 +337,9 @@ app.post("/", (req, res) => {
           req.session.phone = results.contactNumber;
 
           res.redirect("pop");
+        } else {
+          errors.push("Password does not match !");
+          res.render("login", { errors: errors });
         }
       }
     }
