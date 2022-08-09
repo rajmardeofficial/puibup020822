@@ -93,6 +93,12 @@ const userSchema = new mongoose.Schema({
   password: String,
   bio: String,
   image: String,
+  invites: [
+    {
+      user: { type: Types.ObjectId, ref: "clubUsers" },
+    },
+  ],
+  subId: String,
 });
 
 const clubdataSchema = new mongoose.Schema({
@@ -121,8 +127,16 @@ const uniqueSchema = new mongoose.Schema({
   ticketemail: String,
 });
 
+const planSchema = new mongoose.Schema({
+  planId: String,
+  amount: Number,
+  name: String,
+  desc: String,
+});
+
 userSchema.plugin(passportLocalMongoose);
 const clubUsers = mongoose.model("clubUsers", userSchema);
+const planInfo = mongoose.model("planInfo", planSchema);
 const clubowner = mongoose.model("clubowner", clubdataSchema);
 const uniqueId = mongoose.model("uniqueId", uniqueSchema);
 passport.use(clubUsers.createStrategy());
@@ -137,6 +151,41 @@ passport.deserializeUser(function (user, done) {
 let instance = new Razorpay({
   key_id: "rzp_test_zdzlPwPUae1Qzv",
   key_secret: "RbJB4zzx59CY7jM0OEpNtzpM",
+});
+
+app.get("/plans", (req, res) => {
+  res.render("plans");
+});
+
+app.post("/plans", (req, res) => {
+  const { planamt, period, interval, name, desc } = req.body;
+
+  const opt = {
+    period: period,
+    interval: interval,
+    item: {
+      name: "Test plan",
+      amount: planamt * 100,
+      currency: "INR",
+      description: "Description for test plan",
+    },
+  };
+
+  // console.log(req.body);
+
+  instance.plans.create(opt, (err, result) => {
+    console.log(result);
+    const data = new planInfo({
+      planId: result.id,
+      amount: result.item.amount / 100,
+      name: name,
+      desc: desc,
+    });
+
+    data.save((err, result) => {
+      if (err) console.log(err);
+    });
+  });
 });
 
 app.post("/createOrder/:id", (req, res) => {
@@ -202,8 +251,41 @@ function checkName(req, res, next) {
     next();
   } else {
     res.send("oops bocha fatla");
-  }
+  } 
 }
+
+//Razorpay Subscription
+
+app.get("/subscription", (req, res) => {
+  planInfo.find((err, result) => {
+    // console.log(result);
+    res.render("subscription", { data: result });
+  });
+});
+
+app.post("/subscribe/:id", (req, res) => {
+  const { id } = req.params;
+  console.log(id);
+  const opt = {
+    plan_id: id,
+    customer_notify: 1,
+    quantity: 1,
+    total_count: 1,
+  };
+
+  instance.subscriptions.create(opt, (err, result) => {
+    res.send(result);
+    console.log(result);
+  });
+});
+
+app.get("/planCard/:id", (req, res) => {
+  const { id } = req.params;
+  planInfo.findById(id, (err, result) => {
+    console.log(result);
+    res.render("planCard", { data: result });
+  });
+});
 
 // PDF KIT END
 
@@ -238,7 +320,7 @@ app.post("/uni", (req, res) => {
   console.log(uniqueRand);
   uniqueId.find({ uniqueId: uniqueRand }, (err, result) => {
     console.log(result);
-    req.session.ticketemail = result[0].ticketemail
+    req.session.ticketemail = result[0].ticketemail;
     // let transporter = nodemailer.createTransport({
     //   service: "gmail",
     //   auth: {
@@ -303,7 +385,95 @@ app.post("/success", (req, res) => {
   }
 });
 
+app.post("/successSubs", (req, res) => {
+  console.log(req.body);
+  let body =
+    req.body.razorpay_payment_id + "|" + req.body.razorpay_subscription_id;
+  let expectedSignature = crypto
+    .createHmac("sha256", keySecret)
+    .update(body.toString())
+    .digest("hex");
+  console.log("sig received ", req.body.razorpay_signature);
+  console.log("sig generated ", expectedSignature);
+  if (expectedSignature == req.body.razorpay_signature) {
+    response = { signatureIsValid: "true" };
+    // console.log(req.body);
+
+    // clubUsers.find({ _id: req.session.userid }, (err, result) => {
+    //   if (!err) {
+    //     console.log(result);
+    //   } else {
+    //     console.log(err);
+    //   }
+    // });
+
+    clubUsers.findOneAndUpdate(
+      { _id: req.session.userid },
+      { $set: { subId: req.body.razorpay_subscription_id } },
+      { new: true },
+      (err, result) => {
+        if (err) {
+          console.log(err);
+        } else {
+          console.log(result);
+        }
+      }
+    );
+  }
+});
+
+//check subs status
+
+app.get("/checkSubStat", (req, res) => {
+  // clubUsers.findById(req.session.userid, (err, result) => {
+  //   console.log(result);
+  //   if (err) {
+  //     res.send("Try Again", err);
+  // } else {
+  //   instance.subscriptions.fetch(result[0].subId, (err, result) => {
+
+  // console.log(result);
+
+  // if (result.status === "completed" || "active" || "authenticated") {
+  //   console.log(result);
+  //   res.send("accepted");
+  // } else {
+  //   res.redirect("/subscriptions");
+  // }
+  // });
+  // }
+  // });
+
+  clubUsers.findById(req.session.userid, (err, result) => {
+    if (err) {
+      console.log(err);
+    } else if (result.subId == null) {
+      res.redirect("/subscription");
+    } else {
+      instance.subscriptions.fetch(result.subId, (err, doc) => {
+        if (err) {
+          console.log(err);
+        } else {
+          if (doc.status == "completed" || "active" || "authenticated") {
+            res.send("Sub Active");
+          } else {
+            res.send("Sub inactive");
+          }
+        }
+      });
+    }
+  });
+});
+
 //Razorpay logic ends here
+
+// delete invite
+
+app.get("/deleteInvite/:id", (req, res) => {
+  const { id } = req.params;
+});
+
+// delete invites end
 
 app.get(
   "/",
@@ -335,7 +505,7 @@ app.post("/", (req, res) => {
           req.session.dp = results.image;
           req.session.email = results.email;
           req.session.phone = results.contactNumber;
-
+          console.log(req.session);
           res.redirect("pop");
         } else {
           errors.push("Password does not match !");
@@ -383,6 +553,7 @@ app.post("/register", imageUpload.single("image"), (req, res) => {
           req.session.dp = result.image;
           req.session.email = result.email;
           req.session.phone = result.contactNumber;
+          console.log(req.session);
           res.redirect("/clubs");
         }
       });
@@ -428,6 +599,44 @@ app.get("/card/:id", (req, res) => {
       res.render("card", { data: results.likes });
     });
 });
+
+//invites logic
+
+app.get("/users/:id", (req, res) => {
+  var likinguser = req.session.userid;
+  console.log(likinguser);
+  const id = req.params.id;
+  console.log(id);
+
+  clubUsers.findOne({ _id: id }).exec((err, results) => {
+    results.invites.push({
+      user: req.session.userid,
+    });
+
+    results.save((err, cb) => {
+      if (err) {
+        console.log(err);
+      } else {
+        console.log(cb);
+        res.send("request sent success");
+      }
+    });
+  });
+});
+
+app.get("/myinvites", (req, res) => {
+  var myid = req.session.userid;
+  console.log(myid);
+  clubUsers
+    .findById(myid)
+    .populate("invites.user")
+    .exec((err, result) => {
+      console.log(result);
+      res.render("myinvites", { result: result.invites });
+    });
+});
+
+//invites logic ends
 
 app.get("/clubs", function (req, res) {
   clubowner.find((err, result) => {

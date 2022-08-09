@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.0.0-alpha.1/axios.min.js"
+      integrity="sha512-xIPqqrfvUAc/Cspuj7Bq0UtHNo/5qkdyngx6Vwt+tmbvTLDszzXM0G6c91LXmGrRx8KEPulT+AfOOez+TeVylg=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+  </head>
+  <h1><%= data.name %></h1>
+  <button id="rzp-button1">Pay</button>
+  <body>
+    <script>
+      document.getElementById("rzp-button1").addEventListener("click", (e) => {
+        axios.post(`/subscribe/<%= data.planId %>`).then((info) => {
+          var options = {
+            key: "rzp_test_zdzlPwPUae1Qzv", // Enter the Key ID generated from the Dashboard
+            currency: "INR",
+            name: "name",
+            description: "Ticket Book",
+            image: "http://localhost:2022/images/logo.jpeg",
+            subscription_id: info.data.id, //This is a sample Order ID. Pass the `id` obtained in the response of Step 1
+            callback_url: "/successSubs",
+            prefill: {
+              name: "name",
+              email: "email",
+              contact: "phone",
+            },
+            notes: {
+              address: "Razorpay Corporate Office",
+            },
+            theme: {
+              color: "#3399cc",
+            },
+          };
+          var rzp1 = new Razorpay(options);
+          rzp1.open();
+          e.preventDefault();
+        });
+      });
+    </script>
+  </body>
+</html>
